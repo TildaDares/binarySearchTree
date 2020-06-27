@@ -5,19 +5,6 @@ class Tree
         @root = build_tree(array)
     end
 
-    def build_tree(array)
-        return if array.empty?
-        if array.length < 2
-            return Node.new(array.first)
-        end
-        unique_array = array.sort.uniq
-        mid = (unique_array.length/2).round
-        root = Node.new(unique_array[mid])
-        root.left_node = build_tree(unique_array.take(mid))
-        root.right_node = build_tree(unique_array.drop(mid+1))
-        root
-    end
-
     def insert(node = @root, value)
         return false if node.data == value
         if node.data > value
@@ -93,7 +80,6 @@ class Tree
     def level_order(node = @root)
         queue = []
         output = []
-        levels = []
         queue << node
         until empty_nodes(queue)
             current = queue.shift
@@ -114,14 +100,7 @@ class Tree
                 queue << nil
             end
         end
-        p output
         output
-    end
-
-    def empty_nodes(queue)
-        is_empty = true
-        queue.each{|e| is_empty = false unless e == nil}
-        is_empty
     end
 
     def depth(node = @root)
@@ -143,6 +122,26 @@ class Tree
     def rebalance
         @root = build_tree(inorder)
     end
+
+    private
+    def build_tree(array)
+        return if array.empty?
+        if array.length < 2
+            return Node.new(array.first)
+        end
+        unique_array = array.sort.uniq
+        mid = (unique_array.length/2).round
+        root = Node.new(unique_array[mid])
+        root.left_node = build_tree(unique_array.take(mid))
+        root.right_node = build_tree(unique_array.drop(mid+1))
+        root
+    end
+
+    def empty_nodes(queue)
+        is_empty = true
+        queue.each{|e| is_empty = false unless e == nil}
+        is_empty
+    end
 end
 
 puts 'Random array elements'
@@ -150,7 +149,7 @@ tree = Tree.new(Array.new(15) { rand(1..100) })
 puts 'Check if tree is balanced'
 puts tree.balanced?
 puts 'Level order'
-tree.level_order
+p tree.level_order
 puts "\n"
 puts 'Pre-order'
 tree.preorder
@@ -161,7 +160,7 @@ puts "\n"
 puts 'Add more elements'
 5.times { tree.insert(rand(101..200)) }
 puts 'Level order'
-tree.level_order
+p tree.level_order
 puts "\n"
 puts 'Check if tree is balanced'
 puts tree.balanced?
@@ -170,7 +169,7 @@ tree.rebalance
 puts 'Check if tree is balanced'
 puts tree.balanced?
 puts 'Level order'
-tree.level_order
+p tree.level_order
 puts "\n"
 puts 'Pre-order'
 tree.preorder

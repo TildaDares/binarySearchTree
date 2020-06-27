@@ -7,7 +7,7 @@ class Node
         @left_node = nil
     end
 
-    # def<=>(other_node)
-    #     @data <=> other_node.data
-    # end
+    def<=>(other_node)
+        @data <=> other_node
+    end
 end
