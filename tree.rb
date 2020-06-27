@@ -55,26 +55,28 @@ class Tree
         end
     end
 
-    def inorder(node = @root, array = [])
+    def inorder(node = @root, array = [], &block)
         return if node.nil?
-        inorder(node.left_node, array)
-        array << node.data
-        inorder(node.right_node, array)
+        inorder(node.left_node, array, &block)
+        block_given? ? yield(node) : array << node.data
+        inorder(node.right_node, array, &block)
         array
     end
 
-    def postorder(node = @root)
+    def postorder(node = @root, array = [], &block)
         return if node.nil?
-        postorder(node.left_node)
-        postorder(node.right_node)
-        print "#{node.data} "
+        postorder(node.left_node, array, &block)
+        postorder(node.right_node, array, &block)
+        block_given? ? yield(node) : array << node.data
+        array
     end
 
-    def preorder(node = @root)
+    def preorder(node = @root, array = [], &block)
         return if node.nil?
-        print "#{node.data} "
-        preorder(node.left_node)
-        preorder(node.right_node)
+        block_given? ? yield(node) : array << node.data
+        preorder(node.left_node, array, &block)
+        preorder(node.right_node, array, &block)
+        array
     end
 
     def level_order(node = @root)
@@ -93,9 +95,9 @@ class Tree
                 else
                     queue << nil
                 end
-                output << current.data
+                block_given? ? yield(current) : output << current.data
             else
-                output << 'nil'
+                block_given? ? yield(current) : output << 'nil'
                 queue << nil
                 queue << nil
             end
@@ -152,10 +154,13 @@ puts 'Level order'
 p tree.level_order
 puts "\n"
 puts 'Pre-order'
-tree.preorder
+p tree.preorder
 puts "\n"
 puts 'Inorder'
 p tree.inorder
+puts "\n"
+puts 'Post-order'
+p tree.postorder
 puts "\n"
 puts 'Add more elements'
 5.times { tree.insert(rand(101..200)) }
@@ -172,8 +177,20 @@ puts 'Level order'
 p tree.level_order
 puts "\n"
 puts 'Pre-order'
-tree.preorder
+p tree.preorder
 puts "\n"
 puts 'Inorder'
 p tree.inorder
 puts "\n"
+puts 'Post-order'
+p tree.postorder
+puts "\n"
+tree.level_order do |v| 
+    if v == nil
+    else
+        puts v.data 
+    end
+end
+tree.preorder { |v| puts v.data }
+tree.inorder { |v| p v.data }
+tree.postorder { |v| p v.data }
