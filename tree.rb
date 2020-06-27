@@ -106,10 +106,8 @@ class Tree
     end
 
     def depth(node = @root)
-       return 0 if node == nil
-       left = depth(node.left_node)
-       right = depth(node.right_node)
-       return [left, right].max + 1
+       return -1 if node == nil
+       return [depth(node.left_node), depth(node.right_node)].max + 1
     end
 
     def balanced?(node = @root)
