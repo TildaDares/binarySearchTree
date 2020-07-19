@@ -1,147 +1,158 @@
+# frozen_string_literal :true
+
 require_relative 'node'
 class Tree
-    attr_accessor :root
-    def initialize(array)
-        @root = build_tree(array)
+  attr_accessor :root
+  def initialize(array)
+    @root = build_tree(array)
+  end
+
+  def insert(node = @root, value)
+    return false if node.data == value
+
+    if node.data > value
+      if node.left_node
+        insert(node.left_node, value)
+      else
+        node.left_node = Node.new(value)
+      end
+    else
+      if node.right_node
+        insert(node.right_node, value)
+      else
+        node.right_node = Node.new(value)
+      end
+    end
+  end
+
+  def delete(node = @root, value)
+    if node.nil?
+      return node
+    elsif node.data > value
+      node.left_node = delete(node.left_node, value)
+    elsif node.data < value
+      node.right_node = delete(node.right_node, value)
+    else
+      if node.left_node.nil? && node.right_node.nil? # no children
+        node = nil
+      elsif node.right_node.nil? # no right child
+        node = node.left_node
+      elsif node.left_node.nil? # no left child
+        node = node.right_node
+      else # has two children
+        array = inorder(node.right_node)
+        node.data = array.shift
+        node.right_node = delete(node.right_node, node.data)
+      end
     end
 
-    def insert(node = @root, value)
-        return false if node.data == value
-        if node.data > value
-            if node.left_node
-                insert(node.left_node, value)
-            else
-                node.left_node = Node.new(value)
-            end
+    node
+  end
+
+  def find(node = @root, value)
+    return false if node.nil?
+    return node.data if node.data == value
+
+    if node.data > value
+      find(node.left_node, value)
+    else
+      find(node.right_node, value)
+    end
+  end
+
+  def inorder(node = @root, array = [], &block)
+    return if node.nil?
+
+    inorder(node.left_node, array, &block)
+    block_given? ? yield(node) : array << node.data
+    inorder(node.right_node, array, &block)
+    array
+  end
+
+  def postorder(node = @root, array = [], &block)
+    return if node.nil?
+
+    postorder(node.left_node, array, &block)
+    postorder(node.right_node, array, &block)
+    block_given? ? yield(node) : array << node.data
+    array
+  end
+
+  def preorder(node = @root, array = [], &block)
+    return if node.nil?
+
+    block_given? ? yield(node) : array << node.data
+    preorder(node.left_node, array, &block)
+    preorder(node.right_node, array, &block)
+    array
+  end
+
+  def level_order(node = @root)
+    queue = []
+    output = []
+    queue << node
+    until empty_nodes(queue)
+      current = queue.shift
+      if current.nil?
+        block_given? ? yield(current) : output << 'nil'
+        queue << nil
+        queue << nil
+      else
+        if current.left_node && current.right_node
+          queue << current.left_node << current.right_node
+        elsif current.left_node
+          queue << current.left_node
+        elsif current.right_node
+          queue << current.right_node
         else
-            if node.right_node
-                insert(node.right_node, value)
-            else
-                node.right_node = Node.new(value)
-            end
+          queue << nil
+          end
+        block_given? ? yield(current) : output << current.data
         end
     end
+    output
+  end
 
-    def delete(node = @root, value)
-        if node == nil
-            return node
-        elsif node.data > value
-            node.left_node = delete(node.left_node, value)
-        elsif node.data < value
-            node.right_node = delete(node.right_node, value) 
-        else
-            if node.left_node == nil && node.right_node == nil #no children
-                node = nil
-            elsif node.right_node == nil #no right child
-                node = node.left_node
-            elsif node.left_node == nil #no left child
-                node = node.right_node
-            else # has two children
-                array = inorder(node.right_node)
-                node.data = array.shift
-                node.right_node = delete(node.right_node, node.data)
-            end
-        end
-        return node
-    end
+  def depth(node = @root)
+    return -1 if node.nil?
 
-    def find(node = @root, value)
-        return false if node.nil?
-        return node.data if node.data == value
-        if node.data > value
-            find(node.left_node, value)
-        else
-            find(node.right_node, value)
-        end
-    end
+    [depth(node.left_node), depth(node.right_node)].max + 1
+  end
 
-    def inorder(node = @root, array = [], &block)
-        return if node.nil?
-        inorder(node.left_node, array, &block)
-        block_given? ? yield(node) : array << node.data
-        inorder(node.right_node, array, &block)
-        array
-    end
+  def balanced?(node = @root)
+    return 0 if node.nil?
 
-    def postorder(node = @root, array = [], &block)
-        return if node.nil?
-        postorder(node.left_node, array, &block)
-        postorder(node.right_node, array, &block)
-        block_given? ? yield(node) : array << node.data
-        array
-    end
+    left_depth = depth(node.left_node)
+    right_depth = depth(node.right_node)
+    return false if left_depth.nil? || right_depth.nil?
+    return false if (left_depth - right_depth).abs > 1
 
-    def preorder(node = @root, array = [], &block)
-        return if node.nil?
-        block_given? ? yield(node) : array << node.data
-        preorder(node.left_node, array, &block)
-        preorder(node.right_node, array, &block)
-        array
-    end
+    true
+  end
 
-    def level_order(node = @root)
-        queue = []
-        output = []
-        queue << node
-        until empty_nodes(queue)
-            current = queue.shift
-            unless current == nil
-                if current.left_node && current.right_node
-                    queue << current.left_node << current.right_node 
-                elsif current.left_node
-                    queue << current.left_node
-                elsif current.right_node
-                    queue << current.right_node
-                else
-                    queue << nil
-                end
-                block_given? ? yield(current) : output << current.data
-            else
-                block_given? ? yield(current) : output << 'nil'
-                queue << nil
-                queue << nil
-            end
-        end
-        output
-    end
+  def rebalance
+    @root = build_tree(inorder)
+  end
 
-    def depth(node = @root)
-       return -1 if node == nil
-       return [depth(node.left_node), depth(node.right_node)].max + 1
-    end
+  private
 
-    def balanced?(node = @root)
-        return 0 if node == nil
-        left_depth = depth(node.left_node)
-        right_depth = depth(node.right_node)
-        return false if left_depth == nil || right_depth == nil
-        return false if (left_depth - right_depth).abs > 1
-        true
-    end
+  def build_tree(array)
+    return if array.empty?
+    return Node.new(array.first) if array.length < 2
 
-    def rebalance
-        @root = build_tree(inorder)
-    end
+    unique_array = array.sort.uniq
+    mid = (unique_array.length / 2).round
+    root = Node.new(unique_array[mid])
+    root.left_node = build_tree(unique_array.take(mid))
+    root.right_node = build_tree(unique_array.drop(mid + 1))
+    root
+  end
 
-    private
-    def build_tree(array)
-        return if array.empty?
-        if array.length < 2
-            return Node.new(array.first)
-        end
-        unique_array = array.sort.uniq
-        mid = (unique_array.length/2).round
-        root = Node.new(unique_array[mid])
-        root.left_node = build_tree(unique_array.take(mid))
-        root.right_node = build_tree(unique_array.drop(mid+1))
-        root
-    end
-
-    def empty_nodes(queue)
-        is_empty = true
-        queue.each{|e| is_empty = false unless e == nil}
-        is_empty
-    end
+  def empty_nodes(queue)
+    is_empty = true
+    queue.each { |e| is_empty = false unless e.nil? }
+    is_empty
+  end
 end
 
 puts 'Random array elements'
@@ -183,11 +194,11 @@ puts "\n"
 puts 'Post-order'
 p tree.postorder
 puts "\n"
-tree.level_order do |v| 
-    if v == nil
-    else
-        puts v.data 
-    end
+tree.level_order do |v|
+  if v.nil?
+  else
+    puts v.data
+  end
 end
 tree.preorder { |v| puts v.data }
 tree.inorder { |v| p v.data }
